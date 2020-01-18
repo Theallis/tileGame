@@ -4,39 +4,77 @@ var canvas = document.getElementById("game");
 var ctx = null;
 var mapSize = mapW * mapH;
 var gameTiles = [];
+var playerLocation = [4, 4];
+var levelExitLocation = [10,10];
+var coordInfo = [];
+window.addEventListener("keydown", updateGame, false); //for player movement
+
+//Not currently in use
 var encounters = [];
-var playerLocation; 
-var levelExit;
-
-console.log(gameTiles);
 
 
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     Level Modifiers                            //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 
+
+//Level exit
+function exitLevel()
+{
+	if(playerLocation == levelExitLocation)
+	{
+		
+	}
+	
+}
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     Encounters                                 //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
 
 
 //Generating encounter as the player gets to it
-function generateEncounter(){
+function generateEncounter()
+{
 	
-};
+}
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     Tile Generation                            //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
 
 //Game tile object declaration
-function gameTile(){
-	this.type = 0;
-};
-//Generate random tile number/type
-function generateTileType(){
+function gameTile(type)
+{
+	this.type = type;
+}
+
+//Generate random tile number/type 
+function generateTileType()
+{
 	var x = gameTiles.length;
 	gameTiles[x] = new gameTile();
-	gameTiles[x].type = Math.floor((Math.random() * 3) + 0); //Tile type rng
-};
-//Generate tiles on map
-function generateTiles(){
-	for(let i = 0;i<mapSize;i++){
+	gameTiles[x].type = Math.floor((Math.random() * 4) + 0); //Tile type rng
+}
+
+//Generate tiles into the gameTiles array by calling generateTileType for each tile up to the the max for the map
+function generateTiles()
+{
+	for(let i = 0;i < mapSize;i++){
 	generateTileType();	
 	}
-};
-//Generating the tiles without encounters
-function generateMap(){
+}
+
+//Generating the tile color based off of tile type value
+function generateMap()
+{
 	if(ctx==null)
 	{
 		return;
@@ -45,29 +83,91 @@ function generateMap(){
 	{
 		for(var x = 0; x < mapW; x++)
 		{
-			switch(gameTiles[((y*mapW)+x)])
+			for(var i = 0; i < gameTiles.length;i++)
 			{
-				case 0:
-					ctx.fillStyle="green";
-					break;
-				case 1:
-					ctx.fillStyle="purple";
-					break;
-				case 2:
-					ctx.fillStyle="blue";
-					break;
-				case 3:
-					ctx.fillStyle="red";
-					break;
-				default:
-					ctx.fillStyle="black";
-			}
-			
-			ctx.fillRect(x*tileW, y*tileH, tileW, tileH);
+				switch(gameTiles[((y*mapW)+x)].type)
+				{
+					case 0:
+						ctx.fillStyle="green";
+						break;
+					case 1:
+						ctx.fillStyle="purple";
+						break;
+					case 2:
+						ctx.fillStyle="blue";
+						break;
+					case 3:
+						ctx.fillStyle="red";
+						break;
+					default:
+						ctx.fillStyle="black";
+				}
+				ctx.fillRect(x*tileW, y*tileH, tileW, tileH);
+			}	
 		}
 	}
 	requestAnimationFrame(generateMap);
 }
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     Coordinate Storage                         //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
+
+//Load playerLocation and levelExitLocation into encounteredCoords once per load
+function initialCoords()
+{
+	/*for(var i = 0; i !== 1;i++)
+	{
+		encounteredCoords[playerLocation].push(duplicatePlayerLocation(playerLocation), levelExitLocation);
+	}*/
+}
+
+//Duplicating current playerlocation to add to the encountered array otherwise it continues to change because of the current referenced array
+function duplicatePlayerLocation(location)
+{
+	var tempPlayerLocation = JSON.parse(JSON.stringify(location));
+	return tempPlayerLocation;
+}
+
+//Player location update on arrow key press
+function updateGame(key) {
+	if(key.keyCode == 37)
+	{
+		if(playerLocation[0] >= 2)
+		{
+		playerLocation[0] = playerLocation[0] - 1;
+		}
+	}
+	if(key.keyCode == 38) {
+		if(playerLocation[1] >= 2)
+		{
+		playerLocation[1] = playerLocation [1] - 1;
+		}
+	}
+	if(key.keyCode == 39) {
+		if(playerLocation[0] <= 9)
+		{
+		playerLocation[0] = playerLocation [0] + 1;
+		}
+	}
+	if(key.keyCode == 40) {
+		if(playerLocation[1] <=9)
+		{
+		playerLocation[1] = playerLocation [1] + 1;
+		}
+	}
+	document.getElementById('playerLocation').innerHTML = playerLocation;
+}
+
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     window load                                //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+
 
 //To be loaded on window load
 window.onload = function(){
@@ -76,109 +176,16 @@ window.onload = function(){
 	ctx = document.getElementById("game").getContext("2d");
 	requestAnimationFrame(generateMap);
 	ctx.font = "bold 10pt sans-serif";
+	initialCoords();
 }
 
-
-
-
-/******************************************************
-*******************************************************
-Sample code for character/movement
-*******************************************************
-*******************************************************
-
-
-var keysDown = {
-	37 : false,
-	38 : false,
-	39 : false,
-	40 : false
-};
-
-var player = new Character();
-
-function Character(){
-	this.tileFrom = [1,1];
-	this.tileTo = [1,1];
-	this.timeMoved = 0;
-	this.dimensions = [30,30];
-	this.position = [45,45];
-	this.delayMove = 700;
-}
-Character.prototype.placeAt = function(x,y){
-	this.tileFrom = [x,y];
-	this.tileTo = [x,y];
-	this.position =  [((tileW*x) +
-		((tileW-this.dimensions[0])/2)),
-		((tileH*y) + ((tileH-this.dimensions[1])/2))];
-};
-
-Character.prototype.processMovement = function(t)
-{
-	if(this.tileFrom[0]==this.tileTo[0] &&
-		this.tileFrom[1]==this.tileTo[1])
-		{
-			return false;
-		}
-		
-		if((t-this.timeMoved)>=this.delayMove)
-		{
-			this.placeAt(this.tileTo[0], this.tileTo[1]);
-		}
-		else
-		{
-			this.position[0] = (this.tileFrom[0] * tileW) +
-				((tileW - thils.dimensions[0])/2);
-			this.position[1] = (this.tileForm[1] * tileH) +
-				((tileH - thils.dimensions[1])/2);
-				
-			if(this.tileTo[0] != this.tileFrom[0])
-			{
-				var diff = (tileW / this.delayMove) *
-					(t - this.timeMoved);
-				this.position[0]+= (this.tileTo[0]<this.tileFrom[0] ?
-					0 - diff : diff);
-			}
-			if(this.tileTo[1] != this.tileFrom[1])
-			{
-				var diff = (tileH / this.delayMove) *
-					(t - this.timeMoved);
-				this.position[1]+= (this.tileTo[1]<this.tileFrom[1] ?
-					0 - diff : diff);
-			}
-			
-			this.position[0] = Math.round(this.position[0]);
-			this.position[1] = math.round(this.position[1]);
-		}
-		
-		return true;
-};
-
-function toIndex(x,y)
-{
-	return ((y * mapW) + x);
-}
-
-*******************************************************
-Frames per second
-*******************************************************
-
-var currentSecond = 0, frameCount = 0, framesLastSecond = 0;
-var lastFrameTime = 0;
-
-	var sec = Math.floor(Date.now()/1000);
-	if(sec!=currentSecond)
-	{
-			currentSecond = sec;
-			framesLastSecond = frameCount;
-			frameCount = 1;
-	}
-	
-	else { frameCount++; }
-	
-	ctx.fillStyle = "red";
-	ctx.fillText("FPS: " + framesLastSecond, 10, 20);
-	
-
-*******************************************************
-*******************************************************/
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+//                     Editing Help                               //
+////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+console.log(playerLocation);
+console.log(levelExitLocation);
+console.log(mapSize);
+console.log(gameTiles);
+console.log(duplicatePlayerLocation(playerLocation));
